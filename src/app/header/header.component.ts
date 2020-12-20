@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import {DataStorageService} from '../shared/data-storage.service'
 @Component({
@@ -8,7 +9,9 @@ import {DataStorageService} from '../shared/data-storage.service'
 export class HeaderComponent implements OnInit{
 
     isAuthenticated = false;
-    constructor(private dataStorageService: DataStorageService, private authService: AuthService) {}
+    constructor(
+        private dataStorageService: DataStorageService, 
+        private authService: AuthService ) {}
     
     ngOnInit(): void {
         this.authService.user.subscribe(user => {
@@ -17,6 +20,10 @@ export class HeaderComponent implements OnInit{
     }
     onSaveData() {
         this.dataStorageService.storeRecipes();
+    }
+
+    onLogout() {
+        this.authService.logout();       
     }
 
     onFetchData() {

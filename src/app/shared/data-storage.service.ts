@@ -22,10 +22,7 @@ export class DataStorageService {
         return this.authService.user.pipe(
             take(1), 
             exhaustMap(user => {
-                return this.http.get<Recipe []>('https://rblearnapp.firebaseio.com/recipes.json',
-                {
-                    params: new HttpParams().set('auth', user.token)
-                });
+                return this.http.get<Recipe []>('https://rblearnapp.firebaseio.com/recipes.json');
             }), 
             map(recipes => {
                 return recipes.map(recipe => {
