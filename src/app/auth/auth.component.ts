@@ -26,9 +26,11 @@ export class AuthComponent implements OnDestroy{
         private componentFactoryResolver: ComponentFactoryResolver) { }
     
     ngOnDestroy(): void {
-        this.onCloseSub.unsubscribe();
+        if(this.onCloseSub != null) {
+            this.onCloseSub.unsubscribe();
+            this.onCloseSub = null;
+        }
     }
-    
       
     public onSwithMode() {
         this.isLoginMode = !this.isLoginMode;
