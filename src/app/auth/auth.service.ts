@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core'
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'
 import { catchError, tap } from 'rxjs/operators';
-import { BehaviorSubject, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
+import { environment } from '../../environments/environment'
 
-import {User } from './user.model';
+import { User } from './user.model';
 import { Router } from '@angular/router';
 
 export interface AuthResponseData {
@@ -18,38 +19,35 @@ export interface AuthResponseData {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-
-    user = new BehaviorSubject<User>(null);
-
     private tokenExperationTimer = null;
-    private API_KEY = "AIzaSyCps7oVN3nhKzp-54Ee-dfG12eRVo_osZk";
+    user = new BehaviorSubject<User>(null);
 
     constructor(private http: HttpClient, private router: Router) { }
 
     signUp(email: string, password: string) {
-        return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + this.API_KEY, {
+        return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + environment.firebaseApiKey, {
             email: email,
             password: password,
             returnSecureToken: true
         })
-        .pipe(
-            catchError(this.handleError), tap(resData => {
-                this.handleAuthentication(resData.localId, resData.email, resData.idToken, +resData.expiresIn);
-            })
-        );
+            .pipe(
+                catchError(this.handleError), tap(resData => {
+                    this.handleAuthentication(resData.localId, resData.email, resData.idToken, +resData.expiresIn);
+                })
+            );
     }
 
     login(email: string, password: string) {
-        return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + this.API_KEY, {
+        return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + environment.firebaseApiKey, {
             email: email,
             password: password,
             returnSecureToken: true
         })
-        .pipe(
-            catchError(this.handleError), tap(resData => {
-                this.handleAuthentication(resData.localId, resData.email, resData.idToken, +resData.expiresIn);
-            })
-        );
+            .pipe(
+                catchError(this.handleError), tap(resData => {
+                    this.handleAuthentication(resData.localId, resData.email, resData.idToken, +resData.expiresIn);
+                })
+            );
     }
 
     logout() {
@@ -57,14 +55,14 @@ export class AuthService {
         localStorage.removeItem('userData');
         this.router.navigate(['/auth']);
 
-        if(this.tokenExperationTimer) {
+        if (this.tokenExperationTimer) {
             clearTimeout(this.tokenExperationTimer);
         }
 
         this.tokenExperationTimer = null;
     }
 
-    autoLogin(){
+    autoLogin() {
         const userData: {
             id: string,
             email: string,
@@ -72,13 +70,13 @@ export class AuthService {
             _tokenExpiredDate: string
         } = JSON.parse(localStorage.getItem('userData'));
 
-        if(!userData) {
+        if (!userData) {
             return;
         }
 
         const loadedUSer = new User(userData.id, userData.email, userData._token, new Date(userData._tokenExpiredDate))
 
-        if(loadedUSer.token) {
+        if (loadedUSer.token) {
             this.user.next(loadedUSer);
             const experationDuration = new Date(userData._tokenExpiredDate).getTime() - new Date().getTime();
 
@@ -93,7 +91,7 @@ export class AuthService {
         }, experationDuration);
     }
 
-    private handleAuthentication(localId: string, email: string, idToken: string, expiresIn: number){
+    private handleAuthentication(localId: string, email: string, idToken: string, expiresIn: number) {
         const experationDate = new Date(new Date().getTime() + expiresIn * 1000);
         const user = new User(localId, email, idToken, experationDate);
         this.user.next(user);
